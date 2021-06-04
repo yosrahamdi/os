@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "dependencies": [
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/coreos/etcd",
+          "subdir": "contrib/mixin"
+        }
+      },
+      "version": "master"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/prometheus-operator/kube-prometheus",
+          "subdir": "jsonnet/kube-prometheus"
+        }
+      },
+      "version": "release-0.8"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/prometheus-operator/prometheus-operator",
+          "subdir": "jsonnet/prometheus-operator"
+        }
+      },
+      "version": "release-0.47"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/openshift/openshift-state-metrics",
+          "subdir": "jsonnet"
+        }
+      },
+      "version": "release-4.7",
+      "name": "openshift-state-metrics"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/openshift/telemeter",
+          "subdir": "jsonnet/telemeter"
+        }
+      },
+      "version": "release-4.7",
+      "name": "telemeter-client"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/thanos-io/kube-thanos",
+          "subdir": "jsonnet/kube-thanos"
+        }
+      },
+      "version": "release-0.17"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/thanos-io/thanos",
+          "subdir": "mixin"
+        }
+      },
+      "version": "release-0.19"
+    }
+  ],
+  "legacyImports": true
+}

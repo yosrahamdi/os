@@ -1,0 +1,144 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/component: exporter
+    app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/part-of: openshift-monitoring
+    app.kubernetes.io/version: 1.1.2
+  name: node-exporter
+  namespace: openshift-monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: exporter
+      app.kubernetes.io/name: node-exporter
+      app.kubernetes.io/part-of: openshift-monitoring
+  template:
+    metadata:
+      annotations:
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
+      labels:
+        app.kubernetes.io/component: exporter
+        app.kubernetes.io/name: node-exporter
+        app.kubernetes.io/part-of: openshift-monitoring
+        app.kubernetes.io/version: 1.1.2
+    spec:
+      containers:
+      - args:
+        - --web.listen-address=127.0.0.1:9100
+        - --path.sysfs=/host/sys
+        - --path.rootfs=/host/root
+        - --no-collector.wifi
+        - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/pods/.+)($|/)
+        - --collector.netclass.ignored-devices=^(veth.*)$
+        - --collector.netdev.device-exclude=^(veth.*)$
+        - --collector.cpu.info
+        - --collector.textfile.directory=/var/node_exporter/textfile
+        image: quay.io/prometheus/node-exporter:v1.1.2
+        name: node-exporter
+        resources:
+          requests:
+            cpu: 8m
+            memory: 32Mi
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /host/sys
+          mountPropagation: HostToContainer
+          name: sys
+          readOnly: true
+        - mountPath: /host/root
+          mountPropagation: HostToContainer
+          name: root
+          readOnly: true
+        - mountPath: /var/node_exporter/textfile
+          name: node-exporter-textfile
+          readOnly: true
+        workingDir: /var/node_exporter/textfile
+      - args:
+        - --logtostderr
+        - --secure-listen-address=[$(IP)]:9100
+        - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+        - --upstream=http://127.0.0.1:9100/
+        - --tls-cert-file=/etc/tls/private/tls.crt
+        - --tls-private-key-file=/etc/tls/private/tls.key
+        env:
+        - name: IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: quay.io/brancz/kube-rbac-proxy:v0.8.0
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 9100
+          hostPort: 9100
+          name: https
+        resources:
+          requests:
+            cpu: 1m
+            memory: 15Mi
+        securityContext:
+          runAsGroup: 65532
+          runAsNonRoot: true
+          runAsUser: 65532
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /etc/tls/private
+          name: node-exporter-tls
+          readOnly: false
+      hostNetwork: true
+      hostPID: true
+      initContainers:
+      - command:
+        - /bin/sh
+        - -c
+        - '[[ ! -d /node_exporter/collectors/init ]] || find /node_exporter/collectors/init
+          -perm /111 -type f -exec {} \;'
+        env:
+        - name: TMPDIR
+          value: /tmp
+        image: quay.io/prometheus/node-exporter:v1.1.2
+        name: init-textfile
+        resources:
+          requests:
+            cpu: 1m
+            memory: 1Mi
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /var/node_exporter/textfile
+          name: node-exporter-textfile
+          readOnly: false
+        - mountPath: /var/log/wtmp
+          name: node-exporter-wtmp
+          readOnly: true
+        workingDir: /var/node_exporter/textfile
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: system-cluster-critical
+      securityContext: {}
+      serviceAccountName: node-exporter
+      tolerations:
+      - operator: Exists
+      volumes:
+      - hostPath:
+          path: /sys
+        name: sys
+      - hostPath:
+          path: /
+        name: root
+      - emptyDir: {}
+        name: node-exporter-textfile
+      - name: node-exporter-tls
+        secret:
+          secretName: node-exporter-tls
+      - hostPath:
+          path: /var/log/wtmp
+          type: File
+        name: node-exporter-wtmp
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 10%
+    type: RollingUpdate

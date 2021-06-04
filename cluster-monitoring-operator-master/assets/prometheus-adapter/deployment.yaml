@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: metrics-adapter
+    app.kubernetes.io/name: prometheus-adapter
+    app.kubernetes.io/part-of: openshift-monitoring
+    app.kubernetes.io/version: 0.8.4
+  name: prometheus-adapter
+  namespace: openshift-monitoring
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: metrics-adapter
+      app.kubernetes.io/name: prometheus-adapter
+      app.kubernetes.io/part-of: openshift-monitoring
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      annotations:
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
+      labels:
+        app.kubernetes.io/component: metrics-adapter
+        app.kubernetes.io/name: prometheus-adapter
+        app.kubernetes.io/part-of: openshift-monitoring
+        app.kubernetes.io/version: 0.8.4
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: metrics-adapter
+                app.kubernetes.io/name: prometheus-adapter
+                app.kubernetes.io/part-of: openshift-monitoring
+            namespaces:
+            - openshift-monitoring
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - args:
+        - --prometheus-auth-config=/etc/prometheus-config/prometheus-config.yaml
+        - --config=/etc/adapter/config.yaml
+        - --logtostderr=true
+        - --metrics-relist-interval=1m
+        - --prometheus-url=https://prometheus-k8s.openshift-monitoring.svc:9091
+        - --secure-port=6443
+        image: directxman12/k8s-prometheus-adapter:v0.8.4
+        name: prometheus-adapter
+        ports:
+        - containerPort: 6443
+        resources:
+          requests:
+            cpu: 1m
+            memory: 40Mi
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmpfs
+          readOnly: false
+        - mountPath: /etc/adapter
+          name: config
+          readOnly: false
+        - mountPath: /etc/prometheus-config
+          name: prometheus-adapter-prometheus-config
+          readOnly: false
+        - mountPath: /etc/ssl/certs
+          name: serving-certs-ca-bundle
+          readOnly: false
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: system-cluster-critical
+      securityContext: {}
+      serviceAccountName: prometheus-adapter
+      volumes:
+      - emptyDir: {}
+        name: tmpfs
+      - configMap:
+          name: adapter-config
+        name: config
+      - configMap:
+          name: prometheus-adapter-prometheus-config
+        name: prometheus-adapter-prometheus-config
+      - configMap:
+          name: serving-certs-ca-bundle
+        name: serving-certs-ca-bundle

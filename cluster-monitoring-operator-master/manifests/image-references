@@ -1,0 +1,68 @@
+kind: ImageStream
+apiVersion: image.openshift.io/v1
+spec:
+  tags:
+  - name: cluster-monitoring-operator
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-cluster-monitoring-operator:latest
+  - name: prometheus-operator
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-prometheus-operator:latest
+  - name: prometheus-config-reloader
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-prometheus-config-reloader:latest
+  - name: configmap-reloader
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-configmap-reloader:latest
+  - name: prometheus
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-prometheus:latest
+  - name: prometheus-alertmanager
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-prometheus-alertmanager:latest
+  - name: grafana
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-grafana:latest
+  - name: oauth-proxy
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-oauth-proxy:latest
+  - name: prometheus-node-exporter
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-prometheus-node-exporter:latest
+  - name: kube-state-metrics
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-kube-state-metrics:latest
+  - name: openshift-state-metrics
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-openshift-state-metrics:latest
+  - name: kube-rbac-proxy
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-kube-rbac-proxy:latest
+  - name: telemeter
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-telemeter:latest
+  - name: k8s-prometheus-adapter
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-k8s-prometheus-adapter:latest
+  - name: prom-label-proxy
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-prom-label-proxy:latest
+  - name: thanos
+    from:
+      kind: DockerImage
+      name: quay.io/openshift/origin-thanos:latest

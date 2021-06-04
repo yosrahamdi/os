@@ -1,0 +1,28 @@
+component: "Monitoring"
+
+reviewers:
+- paulfantom
+- simonpasquier
+- dgrisonnet
+- jan--f
+- bison
+- fpetkovski
+- raptorsun
+
+approvers:
+- bparees
+- paulfantom
+- simonpasquier
+- dgrisonnet
+- jan--f
+- bison
+- fpetkovski
+- raptorsun
+
+emeritus_approvers:
+- brancz
+- squat
+- metalmatze
+- pgier
+- s-urbaniak
+- LiliC
